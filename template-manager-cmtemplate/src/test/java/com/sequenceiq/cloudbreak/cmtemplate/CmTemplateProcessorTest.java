@@ -582,6 +582,36 @@ public class CmTemplateProcessorTest {
         verifyHostInfo(hosts, "hostGroup3", "host3_2", "/rack3_2");
     }
 
+    @Test
+    public void testIfCustomServiceConfigsAreMerged() {
+        underTest = new CmTemplateProcessor(getBlueprintText("input/de-ha.bp"));
+        // config not present in template
+        List<ApiClusterTemplateConfig> sparkConfigs = List.of(
+                new ApiClusterTemplateConfig().name("spark_drive_log_persist_to_dfs").value("false")
+        );
+        // config present in template
+        List<ApiClusterTemplateConfig> hiveConfigs = List.of(
+                new ApiClusterTemplateConfig().name("tez_auto_reducer_parallelism").value("true"),
+                new ApiClusterTemplateConfig().name("hive_service_config_safety_valve")
+                        .value("<property><name>hive_server2_tez_session_lifetime</name><value>30m</value></property>")
+        );
+        ApiClusterTemplateService spark = underTest.getTemplate().getServices()
+                .stream()
+                .filter(service -> "SPARK_ON_YARN".equals(service.getServiceType()))
+                .findFirst().get();
+        ApiClusterTemplateService hive = underTest.getTemplate().getServices()
+                .stream()
+                .filter(service -> "HIVE_ON_TEZ".equals(service.getServiceType()))
+                .findFirst().get();
+        List<ApiClusterTemplateConfig> existingSparkConfigs = spark.getServiceConfigs();
+        List<ApiClusterTemplateConfig> existingHiveConfigs = hive.getServiceConfigs();
+        underTest.mergeCustomServiceConfigs(spark, sparkConfigs);
+        underTest.mergeCustomServiceConfigs(hive, hiveConfigs);
+        assertEquals(spark.getServiceConfigs().size(), (existingSparkConfigs == null ? 0 : existingSparkConfigs.size()) + sparkConfigs.size());
+        assertEquals(hive.getServiceConfigs().size(), existingHiveConfigs.size());
+        assertTrue(existingHiveConfigs.get(2).getValue().endsWith("<property><name>hive_server2_tez_session_lifetime</name><value>30m</value></property>"));
+    }
+
     private Map<String, String> hostAttributes(String hostname, boolean withRackId, String rackId) {
         Map<String, String> hostAttributes;
         if (withRackId) {

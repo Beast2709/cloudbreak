@@ -62,6 +62,7 @@ auth:
     aws:
       disk:
         EncryptionWithCMK.enable: true
+    datahub.customconfigs.enable: true
     gcp:
       disk:
         EncryptionWithCMEK.enable: true

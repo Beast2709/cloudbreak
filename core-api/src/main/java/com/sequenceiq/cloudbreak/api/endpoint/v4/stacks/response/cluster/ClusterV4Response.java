@@ -104,6 +104,12 @@ public class ClusterV4Response implements JsonEntity {
     @JsonDeserialize(using = Base64Deserializer.class)
     private String extendedBlueprintText;
 
+    @ApiModelProperty(StackModelDescription.CUSTOM_CONFIGS)
+    private String customConfigsName;
+
+    @ApiModelProperty(StackModelDescription.CUSTOM_CONFIGS)
+    private String customConfigsCrn;
+
     @ApiModelProperty(StackModelDescription.SERVER_IP)
     private String serverIp;
 
@@ -360,5 +366,21 @@ public class ClusterV4Response implements JsonEntity {
 
     public void setCertExpirationState(CertExpirationState certExpirationState) {
         this.certExpirationState = certExpirationState;
+    }
+
+    public String getCustomConfigsName() {
+        return customConfigsName;
+    }
+
+    public void setCustomConfigsName(String customConfigsName) {
+        this.customConfigsName = customConfigsName;
+    }
+
+    public String getCustomConfigsCrn() {
+        return customConfigsCrn;
+    }
+
+    public void setCustomConfigsCrn(String customConfigsCrn) {
+        this.customConfigsCrn = customConfigsCrn;
     }
 }
