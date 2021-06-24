@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import javax.ws.rs.NotFoundException;
 
 public enum AuthorizationResourceAction {
+
     CHANGE_CREDENTIAL("environments/changeCredential", AuthorizationResourceType.ENVIRONMENT),
     EDIT_CREDENTIAL("environments/editCredential", AuthorizationResourceType.CREDENTIAL),
     EDIT_ENVIRONMENT("environments/editEnvironment", AuthorizationResourceType.ENVIRONMENT),
@@ -91,6 +92,9 @@ public enum AuthorizationResourceAction {
     DATAHUB_READ("datahub/read", AuthorizationResourceType.DATAHUB),
     DATAHUB_WRITE("datahub/write", AuthorizationResourceType.DATAHUB);
 
+    public static final String DESCRIBE_ACTION_PREFIX = "DESCRIBE";
+
+    public static final String GET_ACTION_PREFIX = "GET";
 
     private static final Map<String, List<AuthorizationResourceAction>> BY_RIGHT = Stream.of(AuthorizationResourceAction.values())
             .collect(Collectors.groupingBy(AuthorizationResourceAction::getRight));
