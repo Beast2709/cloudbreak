@@ -179,7 +179,10 @@
         "kms:ListKeys",
         "kms:ListAliases",
         "ec2:ModifyInstanceAttribute",
-        "ec2:CreateLaunchTemplateVersion"
+        "ec2:CreateLaunchTemplateVersion",
+        "ec2:ModifyLaunchTemplate",
+        "ec2:CreateTags",
+        "cloudformation:CreateStack"
       ],
       "Resource": "*"
     },

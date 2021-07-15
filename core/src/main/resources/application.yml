@@ -720,7 +720,7 @@ cb:
       sdx.enabled: false
     validation:
       distrox:
-        enabled: false
+        enabled: true
       sdx:
         enabled: false
     permittedServicesForUpgrade: >
