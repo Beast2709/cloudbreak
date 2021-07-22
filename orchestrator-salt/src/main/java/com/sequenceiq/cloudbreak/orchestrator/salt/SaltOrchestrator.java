@@ -40,6 +40,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 import com.sequenceiq.cloudbreak.common.exception.CloudbreakServiceException;
 import com.sequenceiq.cloudbreak.common.exception.NotFoundException;
+import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
 import com.sequenceiq.cloudbreak.common.type.RecipeExecutionPhase;
 import com.sequenceiq.cloudbreak.common.type.TemporaryStorage;
 import com.sequenceiq.cloudbreak.orchestrator.OrchestratorBootstrap;
@@ -345,7 +346,7 @@ public class SaltOrchestrator implements HostOrchestrator {
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
     public void initServiceRun(List<GatewayConfig> allGateway, Set<Node> allNodes, Set<Node> reachableNodes, SaltConfig saltConfig,
-            ExitCriteriaModel exitModel) throws CloudbreakOrchestratorException {
+            ExitCriteriaModel exitModel, String cloudPlatform) throws CloudbreakOrchestratorException {
         GatewayConfig primaryGateway = saltService.getPrimaryGatewayConfig(allGateway);
         Set<String> gatewayTargetIpAddresses = getGatewayPrivateIps(allGateway);
         Set<String> gatewayTargetHostnames = getGatewayHostnames(allGateway);
@@ -371,6 +372,7 @@ public class SaltOrchestrator implements HostOrchestrator {
             }
 
             setPostgreRoleIfNeeded(allNodes, saltConfig, exitModel, sc, serverHostname);
+            setStartUpMountRoleIfNeeded(allNodes, saltConfig, exitModel, sc, serverHostname, cloudPlatform);
 
             addClusterManagerRoles(allNodes, exitModel, sc, serverHostname, reachableHostnames);
 
@@ -482,6 +484,14 @@ public class SaltOrchestrator implements HostOrchestrator {
             throws Exception {
         if (saltConfig.getServicePillarConfig().containsKey("postgresql-server")) {
             saltCommandRunner.runModifyGrainCommand(sc, new GrainAddRunner(serverHostname, allNodes, "postgresql_server"), exitModel, exitCriteria);
+        }
+    }
+
+    private void setStartUpMountRoleIfNeeded(Set<Node> allNodes, SaltConfig saltConfig, ExitCriteriaModel exitModel, SaltConnector sc,
+            Set<String> serverHostname, String cloudPlatform)
+            throws Exception {
+        if (CloudPlatform.AWS.equalsIgnoreCase(cloudPlatform)) {
+            saltCommandRunner.runModifyGrainCommand(sc, new GrainAddRunner(serverHostname, allNodes, "startup_mount"), exitModel, exitCriteria);
         }
     }
 
