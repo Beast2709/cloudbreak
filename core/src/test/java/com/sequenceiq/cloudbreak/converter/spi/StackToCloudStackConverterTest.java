@@ -215,7 +215,7 @@ public class StackToCloudStackConverterTest {
         when(environmentClientService.getByCrn(anyString())).thenReturn(environmentResponse);
         when(loadBalancerPersistenceService.findByStackId(anyLong())).thenReturn(Collections.emptySet());
         when(targetGroupPersistenceService.findByLoadBalancerId(anyLong())).thenReturn(Collections.emptySet());
-        doNothing().when(multiAzCalculatorService).calculateByRoundRobin(anyMap(), any(InstanceGroup.class));
+        doNothing().when(multiAzCalculatorService).calculateByRoundRobin(anyMap(), any(InstanceGroup.class), any(CloudInstance.class));
         when(multiAzCalculatorService.prepareSubnetAzMap(any(DetailedEnvironmentResponse.class))).thenReturn(new HashMap<>());
     }
 

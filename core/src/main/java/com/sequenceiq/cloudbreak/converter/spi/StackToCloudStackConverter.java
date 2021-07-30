@@ -143,10 +143,6 @@ public class StackToCloudStackConverter {
         return convert(stack, deleteRequestedInstances);
     }
 
-    public CloudStack convertForTermination(Stack stack, String instanceId) {
-        return convert(stack, Collections.singleton(instanceId));
-    }
-
     public CloudStack convert(Stack stack, Collection<String> deleteRequestedInstances) {
         Image image = null;
         List<Group> instanceGroups = buildInstanceGroups(stack, stack.getInstanceGroupsAsList(), stack.getStackAuthentication(), deleteRequestedInstances);
@@ -200,25 +196,40 @@ public class StackToCloudStackConverter {
                 instanceMetaData == null ? null : instanceMetaData.getSubnetId(),
                 instanceMetaData == null ? null : instanceMetaData.getAvailabilityZone(),
                 parameters);
-        prepareCloudInstanceSubnetAndAvailabilityZone(environmentCrn, instanceGroup, cloudInstance);
+        if (instanceMetaData == null) {
+            prepareCloudInstanceSubnetAndAvailabilityZone(environmentCrn, instanceGroup, cloudInstance, stack);
+        }
         return cloudInstance;
     }
 
-    private void prepareCloudInstanceSubnetAndAvailabilityZone(String environmentCrn, InstanceGroup instanceGroup, CloudInstance cloudInstance) {
+    private void prepareCloudInstanceSubnetAndAvailabilityZone(String environmentCrn, InstanceGroup instanceGroup, CloudInstance cloudInstance, Stack stack) {
         if (Strings.isNullOrEmpty(cloudInstance.getSubnetId()) && Strings.isNullOrEmpty(cloudInstance.getAvailabilityZone())) {
             DetailedEnvironmentResponse environment = measure(() ->
                             ThreadBasedUserCrnProvider.doAsInternalActor(() ->
                                     environmentClientService.getByCrn(environmentCrn)),
                     LOGGER,
                     "Get Environment from Environment service took {} ms");
-            if (environment != null) {
-                multiAzCalculatorService.calculateByRoundRobin(
-                        multiAzCalculatorService.prepareSubnetAzMap(environment),
-                        instanceGroup,
-                        cloudInstance
-                );
+            Map<String, String> subnetAzPairs = multiAzCalculatorService.prepareSubnetAzMap(environment);
+            multiAzCalculatorService.calculateByRoundRobin(
+                    subnetAzPairs,
+                    instanceGroup,
+                    cloudInstance
+            );
+            if (Strings.isNullOrEmpty(cloudInstance.getSubnetId()) && Strings.isNullOrEmpty(cloudInstance.getAvailabilityZone())) {
+                String stackSubnetId = getStackSubnetIdIfExists(stack);
+                cloudInstance.setSubnetId(stackSubnetId);
+                cloudInstance.setAvailabilityZone(stackSubnetId == null ? null : subnetAzPairs.get(stackSubnetId));
             }
         }
+    }
+
+    private String getStackSubnetIdIfExists(Stack stack) {
+        return Optional.ofNullable(stack.getNetwork())
+                .map(com.sequenceiq.cloudbreak.domain.Network::getAttributes)
+                .map(Json::getMap)
+                .map(attr -> attr.get("subnetId"))
+                .map(Object::toString)
+                .orElse(null);
     }
 
     InstanceTemplate buildInstanceTemplate(Template template, String name, Long privateId, InstanceStatus status, String instanceImageId) {
@@ -232,7 +243,7 @@ public class StackToCloudStackConverter {
         fields.putAll(secretAttributes);
 
         List<Volume> volumes = new ArrayList<>();
-        template.getVolumeTemplates().stream().forEach(volumeModel -> {
+        template.getVolumeTemplates().forEach(volumeModel -> {
             for (int i = 0; i < volumeModel.getVolumeCount(); i++) {
                 String mount = volumeModel.getUsageType() == VolumeUsageType.GENERAL ? VolumeUtils.VOLUME_PREFIX + (i + 1) : VolumeUtils.DATABASE_VOLUME;
                 Volume volume = new Volume(mount, volumeModel.getVolumeType(), volumeModel.getVolumeSize(), getVolumeUsageType(volumeModel.getUsageType()));
@@ -306,7 +317,7 @@ public class StackToCloudStackConverter {
                                         instanceAuthentication.getPublicKey(),
                                         getRootVolumeSize(instanceGroup),
                                         cloudFileSystemView,
-                                        buildDeletedCloudInstances(environmentCrn, stackAuthentication, deleteRequests, instanceGroup),
+                                        buildDeletedCloudInstances(environmentCrn, stackAuthentication, instanceGroup),
                                         buildGroupNetwork(stack.getNetwork(), instanceGroup))
                         );
                     }
@@ -357,12 +368,10 @@ public class StackToCloudStackConverter {
         return instances;
     }
 
-    private List<CloudInstance> buildDeletedCloudInstances(String environmentCrn, StackAuthentication stackAuthentication, Collection<String> deleteRequests,
-            InstanceGroup instanceGroup) {
+    private List<CloudInstance> buildDeletedCloudInstances(String environmentCrn, StackAuthentication stackAuthentication, InstanceGroup instanceGroup) {
         List<CloudInstance> instances = new ArrayList<>();
         for (InstanceMetaData metaData : instanceGroup.getDeletedInstanceMetaDataSet()) {
-            InstanceStatus status = TERMINATED;
-            instances.add(buildInstance(metaData, instanceGroup, stackAuthentication, metaData.getPrivateId(), status, environmentCrn));
+            instances.add(buildInstance(metaData, instanceGroup, stackAuthentication, metaData.getPrivateId(), TERMINATED, environmentCrn));
         }
         return instances;
     }
