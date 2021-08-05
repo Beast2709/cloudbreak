@@ -18,6 +18,8 @@ import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
 import com.sequenceiq.cloudbreak.common.type.APIResourceType;
 import com.sequenceiq.common.api.type.EncryptionType;
 import com.sequenceiq.freeipa.api.model.ResourceStatus;
+import com.sequenceiq.freeipa.entity.InstanceGroupNetwork;
+import com.sequenceiq.freeipa.entity.Network;
 import com.sequenceiq.freeipa.entity.Template;
 import com.sequenceiq.freeipa.service.DefaultRootVolumeSizeProvider;
 
@@ -70,5 +72,12 @@ public class DefaultInstanceGroupProvider {
         } else {
             return null;
         }
+    }
+
+    public InstanceGroupNetwork createDefaultNetwork(CloudPlatform cloudPlatform, Network network) {
+        InstanceGroupNetwork instanceGroupNetwork = new InstanceGroupNetwork();
+        instanceGroupNetwork.setCloudPlatform(cloudPlatform.name());
+        instanceGroupNetwork.setAttributes(network.getAttributes());
+        return instanceGroupNetwork;
     }
 }

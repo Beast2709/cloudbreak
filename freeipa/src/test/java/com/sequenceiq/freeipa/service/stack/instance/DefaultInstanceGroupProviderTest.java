@@ -2,6 +2,8 @@ package com.sequenceiq.freeipa.service.stack.instance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.HashSet;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +18,8 @@ import com.sequenceiq.cloudbreak.common.converter.MissingResourceNameGenerator;
 import com.sequenceiq.cloudbreak.common.json.Json;
 import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
 import com.sequenceiq.common.api.type.EncryptionType;
+import com.sequenceiq.freeipa.entity.InstanceGroupNetwork;
+import com.sequenceiq.freeipa.entity.Network;
 import com.sequenceiq.freeipa.entity.Template;
 import com.sequenceiq.freeipa.service.DefaultRootVolumeSizeProvider;
 
@@ -92,6 +96,16 @@ class DefaultInstanceGroupProviderTest {
         Json attributes = underTest.createAttributes(CloudPlatform.AWS, STACK_NM, IG_NAME);
 
         assertThat(attributes).isNull();
+    }
+
+    @Test
+    void createDefaultNetworkWithAwsAttributesShouldReturnWithNetworkAttributes() {
+        Json json = new Json(new HashSet<>());
+        Network network = new Network();
+        network.setAttributes(json);
+        InstanceGroupNetwork defaultNetwork = underTest.createDefaultNetwork(CloudPlatform.AWS, network);
+
+        assertThat(defaultNetwork.getAttributes()).isEqualTo(json);
     }
 
 }

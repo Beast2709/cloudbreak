@@ -14,6 +14,7 @@ import static com.sequenceiq.cloudbreak.auth.altus.model.Entitlement.CDP_AZURE_S
 import static com.sequenceiq.cloudbreak.auth.altus.model.Entitlement.CDP_BASE_IMAGE;
 import static com.sequenceiq.cloudbreak.auth.altus.model.Entitlement.CDP_CB_AWS_DISK_ENCRYPTION_WITH_CMK;
 import static com.sequenceiq.cloudbreak.auth.altus.model.Entitlement.CDP_CB_AWS_NATIVE;
+import static com.sequenceiq.cloudbreak.auth.altus.model.Entitlement.CDP_CB_AWS_NATIVE_FREEIPA;
 import static com.sequenceiq.cloudbreak.auth.altus.model.Entitlement.CDP_CB_AZURE_DISK_SSE_WITH_CMK;
 import static com.sequenceiq.cloudbreak.auth.altus.model.Entitlement.CDP_CB_DATABASE_WIRE_ENCRYPTION;
 import static com.sequenceiq.cloudbreak.auth.altus.model.Entitlement.CDP_CB_GCP_DISK_ENCRYPTION_WITH_CMEK;
@@ -793,6 +794,7 @@ public class MockUserManagementService extends UserManagementImplBase {
                                 .addEntitlements(createEntitlement(DATAHUB_AZURE_AUTOSCALING))
                                 .addEntitlements(createEntitlement(DATAHUB_AWS_AUTOSCALING))
                                 .addEntitlements(createEntitlement(DATAHUB_GCP_AUTOSCALING))
+                                .addEntitlements(createEntitlement(CDP_CB_AWS_NATIVE_FREEIPA))
                                 .addEntitlements(createEntitlement(LOCAL_DEV))
                                 .addEntitlements(createEntitlement(DATAHUB_FLOW_SCALING))
                                 .addEntitlements(createEntitlement(CDP_SHOW_CLI))

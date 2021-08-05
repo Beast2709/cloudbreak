@@ -13,7 +13,7 @@ import com.sequenceiq.freeipa.entity.InstanceMetaData;
 @Component
 public class InstanceMetaDataToInstanceMetaDataResponseConverter implements Converter<InstanceMetaData, InstanceMetaDataResponse> {
 
-    private static final String NOT_AVAILABLE = "N/A";
+    public static final String NOT_AVAILABLE = "N/A";
 
     @Override
     public InstanceMetaDataResponse convert(InstanceMetaData source) {
@@ -31,6 +31,8 @@ public class InstanceMetaDataToInstanceMetaDataResponseConverter implements Conv
         metaDataJson.setInstanceStatus(source.getInstanceStatus());
         metaDataJson.setInstanceType(source.getInstanceMetadataType());
         metaDataJson.setLifeCycle(source.getLifeCycle());
+        metaDataJson.setAvailabilityZone(source.getAvailabilityZone());
+        metaDataJson.setSubnetId(source.getSubnetId());
         return metaDataJson;
     }
 

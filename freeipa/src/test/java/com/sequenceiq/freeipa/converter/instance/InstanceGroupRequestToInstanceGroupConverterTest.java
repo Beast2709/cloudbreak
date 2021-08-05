@@ -14,6 +14,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.sequenceiq.cloudbreak.common.mappable.CloudPlatform;
+import com.sequenceiq.environment.api.v1.environment.model.response.DetailedEnvironmentResponse;
+import com.sequenceiq.freeipa.api.v1.freeipa.stack.model.FreeIpaServerRequest;
 import com.sequenceiq.freeipa.api.v1.freeipa.stack.model.common.instance.InstanceGroupRequest;
 import com.sequenceiq.freeipa.api.v1.freeipa.stack.model.common.instance.InstanceGroupType;
 import com.sequenceiq.freeipa.api.v1.freeipa.stack.model.common.instance.InstanceTemplateRequest;
@@ -22,6 +24,7 @@ import com.sequenceiq.freeipa.converter.instance.template.InstanceTemplateReques
 import com.sequenceiq.freeipa.entity.InstanceGroup;
 import com.sequenceiq.freeipa.entity.InstanceMetaData;
 import com.sequenceiq.freeipa.entity.SecurityGroup;
+import com.sequenceiq.freeipa.entity.Stack;
 import com.sequenceiq.freeipa.entity.Template;
 import com.sequenceiq.freeipa.service.stack.instance.DefaultInstanceGroupProvider;
 
@@ -61,11 +64,23 @@ public class InstanceGroupRequestToInstanceGroupConverterTest {
         SecurityGroup securityGroup = mock(SecurityGroup.class);
         request.setSecurityGroup(securityGroupRequest);
 
+        Stack stack = new Stack();
+        stack.setAccountId(ACCOUNT_ID);
+        stack.setCloudPlatform(MOCK.name());
+        stack.setName(NAME);
+
+        FreeIpaServerRequest freeIpaServerRequest = new FreeIpaServerRequest();
+        freeIpaServerRequest.setHostname(HOSTNAME);
+        freeIpaServerRequest.setDomain(DOMAINNAME);
+
+        DetailedEnvironmentResponse detailedEnvironmentResponse = new DetailedEnvironmentResponse();
+
         // GIVEN
         given(defaultInstanceGroupProvider.createDefaultTemplate(eq(MOCK), eq(ACCOUNT_ID), eq(null))).willReturn(template);
         given(securityGroupConverter.convert(eq(securityGroupRequest))).willReturn(securityGroup);
         // WHEN
-        InstanceGroup result = underTest.convert(request, ACCOUNT_ID, MOCK.name(), NAME, HOSTNAME, DOMAINNAME, null);
+        InstanceGroup result = underTest.convert(request, ACCOUNT_ID, stack, freeIpaServerRequest,
+                null, detailedEnvironmentResponse);
         // THEN
         assertThat(result).isNotNull();
         assertThat(result.getGroupName()).isEqualTo(NAME);
@@ -85,12 +100,24 @@ public class InstanceGroupRequestToInstanceGroupConverterTest {
     void convertTestTemplateConversion() {
         InstanceGroupRequest request = new InstanceGroupRequest();
 
+        Stack stack = new Stack();
+        stack.setAccountId(ACCOUNT_ID);
+        stack.setCloudPlatform(MOCK.name());
+        stack.setName(NAME);
+
+        FreeIpaServerRequest freeIpaServerRequest = new FreeIpaServerRequest();
+        freeIpaServerRequest.setHostname(HOSTNAME);
+        freeIpaServerRequest.setDomain(DOMAINNAME);
+
+        DetailedEnvironmentResponse detailedEnvironmentResponse = new DetailedEnvironmentResponse();
+
         InstanceTemplateRequest instanceTemplateRequest = mock(InstanceTemplateRequest.class);
         request.setInstanceTemplateRequest(instanceTemplateRequest);
         Template template = mock(Template.class);
         when(templateConverter.convert(instanceTemplateRequest, MOCK, ACCOUNT_ID, null)).thenReturn(template);
 
-        InstanceGroup result = underTest.convert(request, ACCOUNT_ID, MOCK.name(), NAME, HOSTNAME, DOMAINNAME, null);
+        InstanceGroup result = underTest.convert(request, ACCOUNT_ID, stack, freeIpaServerRequest,
+                null, detailedEnvironmentResponse);
 
         assertThat(result).isNotNull();
         assertThat(result.getTemplate()).isSameAs(template);
@@ -100,12 +127,24 @@ public class InstanceGroupRequestToInstanceGroupConverterTest {
     void convertTestTemplateConversionWithDiskEncryptionSetId() {
         InstanceGroupRequest request = new InstanceGroupRequest();
 
+        Stack stack = new Stack();
+        stack.setAccountId(ACCOUNT_ID);
+        stack.setCloudPlatform(MOCK.name());
+        stack.setName(NAME);
+
+        FreeIpaServerRequest freeIpaServerRequest = new FreeIpaServerRequest();
+        freeIpaServerRequest.setHostname(HOSTNAME);
+        freeIpaServerRequest.setDomain(DOMAINNAME);
+
+        DetailedEnvironmentResponse detailedEnvironmentResponse = new DetailedEnvironmentResponse();
+
         InstanceTemplateRequest instanceTemplateRequest = mock(InstanceTemplateRequest.class);
         request.setInstanceTemplateRequest(instanceTemplateRequest);
         Template template = mock(Template.class);
         when(templateConverter.convert(instanceTemplateRequest, MOCK, ACCOUNT_ID, "dummyDiskEncryptionSetId")).thenReturn(template);
 
-        InstanceGroup result = underTest.convert(request, ACCOUNT_ID, MOCK.name(), NAME, HOSTNAME, DOMAINNAME, "dummyDiskEncryptionSetId");
+        InstanceGroup result = underTest.convert(request, ACCOUNT_ID, stack, freeIpaServerRequest,
+                "dummyDiskEncryptionSetId", detailedEnvironmentResponse);
 
         assertThat(result).isNotNull();
         assertThat(result.getTemplate()).isSameAs(template);
@@ -115,9 +154,23 @@ public class InstanceGroupRequestToInstanceGroupConverterTest {
     void convertTestDefaultTemplateConversionWithDiskEncryptionSetId() {
         InstanceGroupRequest request = new InstanceGroupRequest();
         Template template = mock(Template.class);
-        when(defaultInstanceGroupProvider.createDefaultTemplate(CloudPlatform.AZURE, ACCOUNT_ID, "dummyDiskEncryptionSetId")).thenReturn(template);
 
-        InstanceGroup result = underTest.convert(request, ACCOUNT_ID, CloudPlatform.AZURE.name(), NAME, HOSTNAME, DOMAINNAME, "dummyDiskEncryptionSetId");
+        Stack stack = new Stack();
+        stack.setAccountId(ACCOUNT_ID);
+        stack.setCloudPlatform(MOCK.name());
+        stack.setName(NAME);
+
+        FreeIpaServerRequest freeIpaServerRequest = new FreeIpaServerRequest();
+        freeIpaServerRequest.setHostname(HOSTNAME);
+        freeIpaServerRequest.setDomain(DOMAINNAME);
+
+        DetailedEnvironmentResponse detailedEnvironmentResponse = new DetailedEnvironmentResponse();
+
+        when(defaultInstanceGroupProvider.createDefaultTemplate(CloudPlatform.MOCK, ACCOUNT_ID, "dummyDiskEncryptionSetId"))
+                .thenReturn(template);
+
+        InstanceGroup result = underTest.convert(request, ACCOUNT_ID, stack, freeIpaServerRequest,
+                "dummyDiskEncryptionSetId", detailedEnvironmentResponse);
 
         assertThat(result).isNotNull();
         assertThat(result.getTemplate()).isSameAs(template);
