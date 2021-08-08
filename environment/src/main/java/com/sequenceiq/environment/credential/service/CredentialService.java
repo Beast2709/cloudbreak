@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -416,7 +417,19 @@ public class CredentialService extends AbstractCredentialService implements Reso
     public PolicyValidationErrorResponses doPolicyValidation(String accountId, String environmentCrn, List<String> services) {
         Credential credential = getByEnvironmentCrnAndAccountId(environmentCrn, accountId, ENVIRONMENT);
         Map<String, String> experiencePrerequisites = credentialPrerequisiteService.getExperiencePrerequisites(credential.getCloudPlatform());
+        collectEmptyPolicyResponses(experiencePrerequisites).forEach(key -> experiencePrerequisites.remove(key));
         CDPServicePolicyVerification cdpServicePolicyVerification = credentialAdapter.verifyByServices(credential, accountId, services, experiencePrerequisites);
         return policyValidationErrorResponseConverter.convert(cdpServicePolicyVerification);
     }
+
+    private Set<String> collectEmptyPolicyResponses(Map<String, String> experiencePrerequisites) {
+        Set<String> keysWithEmptyValue = new LinkedHashSet<>();
+        experiencePrerequisites.forEach((key, value) -> {
+            if (StringUtils.isEmpty(value)) {
+                keysWithEmptyValue.add(key);
+            }
+        });
+        return keysWithEmptyValue;
+    }
+
 }

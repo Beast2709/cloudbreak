@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.sequenceiq.environment.environment.dto.EnvironmentExperienceDto;
-import com.sequenceiq.environment.exception.ExperienceOperationFailedException;
 import com.sequenceiq.environment.experience.Experience;
 import com.sequenceiq.environment.experience.ExperienceCluster;
 import com.sequenceiq.environment.experience.ExperienceConnectorService;
@@ -96,8 +95,8 @@ public class CommonExperienceService implements Experience {
                                 ExperienceConnectorService.class.getSimpleName(), configuredExperience.getBusinessName(), environment.getCloudPlatform());
                         ExperiencePolicyResponse res = experienceConnectorService.collectPolicy(xpPath, environment.getCloudPlatform());
                         policies.put(configuredExperience.getBusinessName(), getIfNotNullOtherwise(res.getAws(), aws -> aws.getPolicy(), null));
-                    } catch (ExperienceOperationFailedException eofe) {
-                        LOGGER.warn("Unable to fetch policy from experience \"" + configuredExperience.getName() + "\" due to: " + eofe.getMessage(), eofe);
+                    } catch (Exception e) {
+                        LOGGER.warn("Unable to fetch policy from experience \"" + configuredExperience.getName() + "\" due to: " + e.getMessage(), e);
                         policies.put(configuredExperience.getBusinessName(), "");
                     }
                 });
