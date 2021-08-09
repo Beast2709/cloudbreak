@@ -261,6 +261,12 @@
             "roleType": "HIVEMETASTORE",
             "base": true
           }
+        ],
+        "serviceConfigs": [
+          {
+            "name": "hive_service_config_safety_valve",
+            "value": "<property><name>hive.privilege.synchronizer</name><value>false</value></property>"
+          }
         ]
       },
       {
