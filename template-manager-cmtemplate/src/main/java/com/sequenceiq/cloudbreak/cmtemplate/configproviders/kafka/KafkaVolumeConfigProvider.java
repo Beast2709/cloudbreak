@@ -3,8 +3,9 @@ package com.sequenceiq.cloudbreak.cmtemplate.configproviders.kafka;
 import static com.sequenceiq.cloudbreak.cmtemplate.configproviders.ConfigUtils.config;
 import static com.sequenceiq.cloudbreak.template.VolumeUtils.buildVolumePathStringZeroVolumeHandled;
 
+import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.stereotype.Component;
@@ -19,10 +20,12 @@ public class KafkaVolumeConfigProvider implements CmHostGroupRoleConfigProvider 
 
     @Override
     public List<ApiClusterTemplateConfig> getRoleConfigs(String roleType, HostgroupView hostGroupView, TemplatePreparationObject source) {
-        Integer volumeCount = Objects.nonNull(hostGroupView) ? hostGroupView.getVolumeCount() : 0;
+        Optional<HostgroupView> hostGroup = source.getHostGroupsWithComponent(KafkaRoles.KAFKA_BROKER)
+                        .min(Comparator.comparing(HostgroupView::getVolumeCount));
+        Integer minimumVolumeCount = hostGroup.isPresent() ? hostGroup.get().getVolumeCount() : 0;
         switch (roleType) {
             case KafkaRoles.KAFKA_BROKER:
-                return List.of(config("log.dirs", buildVolumePathStringZeroVolumeHandled(volumeCount, "kafka")));
+                return List.of(config("log.dirs", buildVolumePathStringZeroVolumeHandled(minimumVolumeCount, "kafka")));
             default:
                 return List.of();
         }
@@ -40,6 +43,6 @@ public class KafkaVolumeConfigProvider implements CmHostGroupRoleConfigProvider 
 
     @Override
     public boolean sharedRoleType(String roleType) {
-        return false;
+        return KafkaRoles.KAFKA_BROKER.equals(roleType);
     }
 }
